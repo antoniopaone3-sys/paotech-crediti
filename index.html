@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAOTECH — Crediti & Debiti</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+  #login-screen { position: fixed; inset: 0; background: #0f1117; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+  .login-box { background: #1a1d2e; border-radius: 14px; padding: 40px 36px; width: 100%; max-width: 360px; border: 1px solid #2d3148; text-align: center; }
+  .login-box .logo { font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
+  .login-box .logo span { color: #e63946; }
+  .login-box .subtitle { font-size: 0.8rem; color: #94a3b8; margin-bottom: 28px; }
+  .login-box input { width: 100%; background: #0f1117; border: 1px solid #2d3148; border-radius: 8px; padding: 12px 14px; color: #e2e8f0; font-size: 1rem; outline: none; text-align: center; letter-spacing: 0.15em; margin-bottom: 14px; transition: border-color 0.2s; }
+  .login-box input:focus { border-color: #e63946; }
+  .login-box button { width: 100%; background: #e63946; color: #fff; border: none; border-radius: 8px; padding: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+  .login-box button:hover { background: #c1121f; }
+  .login-error { color: #fca5a5; font-size: 0.83rem; margin-top: 10px; min-height: 20px; }
+  #app { display: none; }
+  header { background: #1a1d2e; border-bottom: 2px solid #e63946; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: #fff; }
+  header span { background: #e63946; color: #fff; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+  .tabs { display: flex; background: #1a1d2e; border-bottom: 1px solid #2d3148; }
+  .tab { padding: 14px 28px; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: #94a3b8; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab.active { color: #e63946; border-bottom-color: #e63946; }
+  .tab:hover:not(.active) { color: #e2e8f0; }
+  .container { padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .alert-banner { background: #7c2d12; border: 1px solid #ea580c; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; flex-wrap: wrap; }
+  .alert-banner .close-btn { margin-left: auto; cursor: pointer; opacity: 0.7; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: #1a1d2e; border-radius: 10px; padding: 18px; border-left: 4px solid #e63946; }
+  .stat-card.green { border-left-color: #22c55e; }
+  .stat-card.yellow { border-left-color: #f59e0b; }
+  .stat-card.blue { border-left-color: #3b82f6; }
+  .stat-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .stat-value { font-size: 1.5rem; font-weight: 700; }
+  .btn { padding: 9px 18px; border-radius: 7px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+  .btn-primary { background: #e63946; color: #fff; }
+  .btn-primary:hover { background: #c1121f; }
+  .btn-success { background: #22c55e; color: #fff; }
+  .btn-success:hover { background: #16a34a; }
+  .btn-ghost { background: #2d3148; color: #e2e8f0; }
+  .btn-ghost:hover { background: #3d4468; }
+  .btn-sm { padding: 5px 11px; font-size: 0.78rem; }
+  .btn-wa { background: #25d366; color: #fff; }
+  .btn-wa:hover { background: #128c7e; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .section-title { font-size: 1.1rem; font-weight: 700; }
+  .card-list { display: flex; flex-direction: column; gap: 12px; }
+  .card { background: #1a1d2e; border-radius: 10px; padding: 18px; border: 1px solid #2d3148; transition: border-color 0.2s; }
+  .card:hover { border-color: #4d5580; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .card-name { font-weight: 700; font-size: 1rem; }
+  .card-product { font-size: 0.85rem; color: #94a3b8; margin-top: 2px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+  .badge-aperto { background: #1e3a5f; color: #60a5fa; }
+  .badge-in_ritardo { background: #7c2d12; color: #fca5a5; }
+  .badge-chiuso { background: #14532d; color: #86efac; }
+  .badge-pagato { background: #14532d; color: #86efac; }
+  .badge-da_pagare { background: #1e3a5f; color: #60a5fa; }
+  .card-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; font-size: 0.83rem; }
+  .detail-item label { color: #94a3b8; display: block; font-size: 0.75rem; margin-bottom: 2px; }
+  .detail-item span { font-weight: 600; }
+  .saldo { font-size: 1.1rem; font-weight: 700; color: #f59e0b; }
+  .card-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal { background: #1a1d2e; border-radius: 12px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; border: 1px solid #2d3148; }
+  .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #e63946; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; font-weight: 600; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; background: #0f1117; border: 1px solid #2d3148; border-radius: 7px; padding: 9px 12px; color: #e2e8f0; font-size: 0.88rem; outline: none; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #e63946; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .divider { border: none; border-top: 1px solid #2d3148; margin: 16px 0; }
+  .rata-list { margin-top: 10px; }
+  .rata-item { background: #0f1117; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.83rem; }
+  .wa-preview { background: #0f1117; border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 0.85rem; line-height: 1.6; border-left: 3px solid #25d366; white-space: pre-wrap; }
+  .wa-subtitle { font-size: 0.8rem; color: #94a3b8; margin-bottom: 12px; }
+  .empty-state { text-align: center; padding: 48px 20px; color: #94a3b8; }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+  .loading { text-align: center; padding: 40px; color: #94a3b8; }
+  .hidden { display: none !important; }
+  select option { background: #1a1d2e; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="logo">PAO<span>TECH</span></div>
+    <div class="subtitle">Gestionale Crediti & Debiti</div>
+    <input type="password" id="pwd-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkLogin()">
+    <button onclick="checkLogin()">Accedi</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header><h1>PAOTECH</h1><span>CREDITI & DEBITI</span></header>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('crediti',this)">💰 Crediti</div>
+    <div class="tab" onclick="switchTab('debiti',this)">📤 Debiti</div>
+  </div>
+  <div class="container">
+    <div id="alert-container"></div>
+
+    <!-- CREDITI -->
+    <div id="tab-crediti">
+      <div class="stats">
+        <div class="stat-card"><div class="stat-label">Totale Crediti Aperti</div><div class="stat-value" id="stat-totale">€0</div></div>
+        <div class="stat-card yellow"><div class="stat-label">In Scadenza (3gg)</div><div class="stat-value" id="stat-scadenza">0</div></div>
+        <div class="stat-card" style="border-left-color:#e63946"><div class="stat-label">In Ritardo</div><div class="stat-value" id="stat-ritardo">0</div></div>
+        <div class="stat-card green"><div class="stat-label">Chiusi</div><div class="stat-value" id="stat-chiusi">0</div></div>
+      </div>
+      <div class="section-header"><div class="section-title">Elenco Crediti</div><button class="btn btn-primary" onclick="openModal('credito')">+ Nuovo Credito</button></div>
+      <div id="crediti-list" class="card-list"><div class="loading">Caricamento...</div></div>
+    </div>
+
+    <!-- DEBITI -->
+    <div id="tab-debiti" class="hidden">
+      <div class="stats">
+        <div class="stat-card"><div class="stat-label">Totale Da Pagare</div><div class="stat-value" id="stat-debiti-totale">€0</div></div>
+        <div class="stat-card yellow"><div class="stat-label">In Scadenza (3gg)</div><div class="stat-value" id="stat-debiti-scadenza">0</div></div>
+        <div class="stat-card" style="border-left-color:#e63946"><div class="stat-label">In Ritardo</div><div class="stat-value" id="stat-debiti-ritardo">0</div></div>
+        <div class="stat-card green"><div class="stat-label">Chiusi</div><div class="stat-value" id="stat-debiti-chiusi">0</div></div>
+      </div>
+      <div class="section-header"><div class="section-title">Elenco Debiti</div><button class="btn btn-primary" onclick="openModal('debito')">+ Nuovo Debito</button></div>
+      <div id="debiti-list" class="card-list"><div class="loading">Caricamento...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREDITO/DEBITO -->
+<div id="modal-form" class="modal-overlay hidden">
+  <div class="modal">
+    <h2 id="modal-form-title">Nuovo</h2>
+    <input type="hidden" id="form-id">
+    <input type="hidden" id="form-tipo-record">
+    <div class="form-row">
+      <div class="form-group"><label id="lbl-nome">Nome *</label><input type="text" id="f-nome" placeholder="Es. Mario Rossi"></div>
+      <div class="form-group"><label>Telefono (WhatsApp)</label><input type="text" id="f-telefono" placeholder="Es. 3331234567"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label id="lbl-tipo">Tipo *</label><select id="f-tipo"><option value="cliente">Cliente</option><option value="fornitore">Fornitore</option></select></div>
+      <div class="form-group"><label id="lbl-data">Data *</label><input type="date" id="f-data"></div>
+    </div>
+    <div class="form-group"><label>Prodotto / Oggetto *</label><input type="text" id="f-prodotto" placeholder="Es. iPhone 13 ricondizionato"></div>
+    <div class="form-group"><label>Motivo *</label><input type="text" id="f-motivo" placeholder="Es. Vendita rateale, acquisto ricambi..."></div>
+    <div class="form-row">
+      <div class="form-group"><label>Importo Totale (€) *</label><input type="number" id="f-importo" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Stato</label><select id="f-stato"><option value="aperto">Aperto</option><option value="in_ritardo">In Ritardo</option><option value="chiuso">Chiuso</option></select></div>
+    </div>
+    <div class="form-group"><label>Note</label><textarea id="f-note" rows="2" placeholder="Note aggiuntive..."></textarea></div>
+    <hr class="divider">
+    <div class="form-group"><label id="lbl-anticipo">💳 Acconto Iniziale (€)</label><input type="number" id="f-anticipo" placeholder="0.00" step="0.01"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Metodo Pagamento</label><select id="f-anticipo-metodo"><option value="">-- Seleziona --</option><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>PayPal</option><option>Satispay</option></select></div>
+      <div class="form-group"><label>Data Acconto</label><input type="date" id="f-anticipo-data"></div>
+    </div>
+    <hr class="divider">
+    <div class="form-row">
+      <div class="form-group"><label>📅 Prossima Rata (€)</label><input type="number" id="f-rata-importo" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Scadenza</label><input type="date" id="f-rata-data"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModalForm()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveRecord()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETTAGLIO -->
+<div id="modal-dettaglio" class="modal-overlay hidden">
+  <div class="modal" style="max-width:640px">
+    <h2 id="det-title">Dettaglio</h2>
+    <div id="det-body"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModalDettaglio()">Chiudi</button></div>
+  </div>
+</div>
+
+<!-- MODAL PAGAMENTO -->
+<div id="modal-rata" class="modal-overlay hidden">
+  <div class="modal" style="max-width:420px">
+    <h2 id="rata-title">Aggiungi Pagamento</h2>
+    <input type="hidden" id="rata-record-id">
+    <input type="hidden" id="rata-record-tipo">
+    <div class="form-group"><label id="lbl-rata-importo">Importo (€) *</label><input type="number" id="rata-importo" placeholder="0.00" step="0.01"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Data *</label><input type="date" id="rata-data"></div>
+      <div class="form-group"><label>Metodo</label><select id="rata-metodo"><option value="">-- Seleziona --</option><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>PayPal</option><option>Satispay</option></select></div>
+    </div>
+    <div class="form-group"><label>Tipo</label><select id="rata-tipo"><option value="rata">Rata</option><option value="anticipo">Acconto</option></select></div>
+    <div class="form-group"><label>📝 Note (opzionale)</label><textarea id="rata-note" rows="2" placeholder="Es. ha preso anche cover, ha portato altro dispositivo..."></textarea></div>
+    <hr class="divider">
+    <div style="font-size:0.85rem;color:#94a3b8;margin-bottom:8px">Aggiorna prossima scadenza (opzionale):</div>
+    <div class="form-row">
+      <div class="form-group"><label>Prossima Rata (€)</label><input type="number" id="rata-prossima-importo" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Data Scadenza</label><input type="date" id="rata-prossima-data"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModalRata()">Annulla</button>
+      <button class="btn btn-success" onclick="saveRata()">Aggiungi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WHATSAPP -->
+<div id="modal-wa" class="modal-overlay hidden">
+  <div class="modal" style="max-width:480px">
+    <h2>📱 Messaggio WhatsApp</h2>
+    <div class="wa-subtitle">Vuoi inviare questo messaggio?</div>
+    <div class="wa-preview" id="wa-text"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModalWA()">Non ora</button>
+      <button class="btn btn-wa" onclick="sendWA()">✅ Apri WhatsApp e Invia</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://lpepweefewzhyolvojvh.supabase.co';
+const SUPA_KEY = 'sb_publishable_NIjXyr3nAfg7icrrX9foNA_Pi8fNKZH';
+const PWD_LOGIN = 'Pao2024';
+const PWD_DELETE = '19921994';
+const hdrs = { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
+
+let crediti = [], rateC = [], scadenzeC = [];
+let debiti = [], rateD = [], scadenzeD = [];
+let waPhone = '', waMsg = '';
+
+// ---- LOGIN ----
+function checkLogin() {
+  if (document.getElementById('pwd-input').value === PWD_LOGIN) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('login-error').textContent = 'Password errata. Riprova.';
+    document.getElementById('pwd-input').value = '';
+  }
+}
+
+// ---- API ----
+async function api(method, path, body) {
+  const opts = { method, headers: hdrs };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(SUPA_URL + '/rest/v1/' + path, opts);
+  if (!r.ok) throw new Error(await r.text());
+  if (method === 'DELETE' || r.status === 204) return null;
+  return r.json();
+}
+
+async function loadAll() {
+  try {
+    [crediti, rateC, scadenzeC, debiti, rateD, scadenzeD] = await Promise.all([
+      api('GET', 'crediti?select=*&order=created_at.desc'),
+      api('GET', 'rate_crediti?select=*'),
+      api('GET', 'scadenze_crediti?select=*'),
+      api('GET', 'debiti?select=*&order=created_at.desc'),
+      api('GET', 'rate_debiti?select=*'),
+      api('GET', 'scadenze_debiti?select=*'),
+    ]);
+    renderCrediti(); renderDebiti(); checkScadenze();
+  } catch(e) { console.error(e); }
+}
+
+// ---- CALCOLI ----
+function getSaldo(id, tipo) {
+  const rec = tipo === 'credito' ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
+  if (!rec) return 0;
+  const rs = tipo === 'credito' ? rateC : rateD;
+  const pagato = rs.filter(r=>r.credito_id===id||r.debito_id===id).reduce((s,r)=>s+parseFloat(r.importo),0);
+  return Math.max(0, parseFloat(rec.importo_totale) - pagato);
+}
+function getPagato(id, tipo) {
+  const rs = tipo === 'credito' ? rateC : rateD;
+  return rs.filter(r=>r.credito_id===id||r.debito_id===id).reduce((s,r)=>s+parseFloat(r.importo),0);
+}
+function getProssima(id, tipo) {
+  const sc = tipo === 'credito' ? scadenzeC : scadenzeD;
+  return sc.filter(s=>(s.credito_id===id||s.debito_id===id)&&!s.pagata).sort((a,b)=>new Date(a.data_scadenza)-new Date(b.data_scadenza))[0];
+}
+
+// ---- STATS ----
+function renderStats() {
+  const cAperti = crediti.filter(c=>c.stato!=='chiuso');
+  document.getElementById('stat-totale').textContent = '€'+cAperti.reduce((s,c)=>s+getSaldo(c.id,'credito'),0).toFixed(2);
+  document.getElementById('stat-ritardo').textContent = crediti.filter(c=>c.stato==='in_ritardo').length;
+  document.getElementById('stat-chiusi').textContent = crediti.filter(c=>c.stato==='chiuso').length;
+  const oggi = dayjs();
+  document.getElementById('stat-scadenza').textContent = scadenzeC.filter(s=>!s.pagata&&dayjs(s.data_scadenza).diff(oggi,'day')>=0&&dayjs(s.data_scadenza).diff(oggi,'day')<=3).length;
+  const dAperti = debiti.filter(d=>d.stato!=='chiuso');
+  document.getElementById('stat-debiti-totale').textContent = '€'+dAperti.reduce((s,d)=>s+getSaldo(d.id,'debito'),0).toFixed(2);
+  document.getElementById('stat-debiti-ritardo').textContent = debiti.filter(d=>d.stato==='in_ritardo').length;
+  document.getElementById('stat-debiti-chiusi').textContent = debiti.filter(d=>d.stato==='chiuso').length;
+  document.getElementById('stat-debiti-scadenza').textContent = scadenzeD.filter(s=>!s.pagata&&dayjs(s.data_scadenza).diff(oggi,'day')>=0&&dayjs(s.data_scadenza).diff(oggi,'day')<=3).length;
+}
+
+function checkScadenze() {
+  const oggi = dayjs(); const avvisi = [];
+  [...scadenzeC.map(s=>({...s,_tipo:'credito'})), ...scadenzeD.map(s=>({...s,_tipo:'debito'}))].forEach(s => {
+    if (!s.pagata) {
+      const diff = dayjs(s.data_scadenza).diff(oggi,'day');
+      if (diff>=0&&diff<=3) {
+        const rec = s._tipo==='credito' ? crediti.find(x=>x.id===s.credito_id) : debiti.find(x=>x.id===s.debito_id);
+        if (rec) avvisi.push(`<strong>${rec.nome_cliente||rec.fornitore}</strong> (${rec.prodotto}) — €${parseFloat(s.importo).toFixed(2)} il ${dayjs(s.data_scadenza).format('DD/MM/YYYY')}`);
+      }
+    }
+  });
+  document.getElementById('alert-container').innerHTML = avvisi.length ? `<div class="alert-banner">🔔 <strong>${avvisi.length} scadenza/e nei prossimi 3 giorni:</strong> ${avvisi.join(' · ')} <span class="close-btn" onclick="this.parentElement.remove()">✕</span></div>` : '';
+}
+
+// ---- RENDER CARD (universale) ----
+function renderCard(rec, tipo) {
+  const saldo = getSaldo(rec.id, tipo);
+  const pagato = getPagato(rec.id, tipo);
+  const prossima = getProssima(rec.id, tipo);
+  const nome = rec.nome_cliente || rec.fornitore;
+  return `<div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-name">${nome} <span style="color:#94a3b8;font-weight:400;font-size:0.8rem">(${rec.tipo||tipo})</span></div>
+        <div class="card-product">📦 ${rec.prodotto}</div>
+        ${rec.motivo ? `<div class="card-product">📝 ${rec.motivo}</div>` : ''}
+      </div>
+      <span class="badge badge-${rec.stato}">${rec.stato.replace('_',' ')}</span>
+    </div>
+    <div class="card-details">
+      <div class="detail-item"><label>Importo Totale</label><span>€${parseFloat(rec.importo_totale).toFixed(2)}</span></div>
+      <div class="detail-item"><label>Pagato</label><span style="color:#22c55e">€${pagato.toFixed(2)}</span></div>
+      <div class="detail-item"><label>Saldo Residuo</label><span class="saldo">€${saldo.toFixed(2)}</span></div>
+      <div class="detail-item"><label>Data</label><span>${dayjs(rec.data_primo_credito||rec.data_primo_debito).format('DD/MM/YYYY')}</span></div>
+      ${prossima ? `<div class="detail-item"><label>Prossima Rata</label><span style="color:#f59e0b">€${parseFloat(prossima.importo).toFixed(2)} — ${dayjs(prossima.data_scadenza).format('DD/MM/YYYY')}</span></div>` : ''}
+      ${rec.telefono ? `<div class="detail-item"><label>Telefono</label><span>${rec.telefono}</span></div>` : ''}
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openDettaglio('${rec.id}','${tipo}')">📋 Dettaglio</button>
+      <button class="btn btn-ghost btn-sm" onclick="openModalRata('${rec.id}','${tipo}')">+ Pagamento</button>
+      <button class="btn btn-ghost btn-sm" onclick="openModal('${tipo}','${rec.id}')">✏️ Modifica</button>
+      ${rec.telefono ? `<button class="btn btn-wa btn-sm" onclick="openWA('${rec.id}','${tipo}','promemoria')">📱 Promemoria</button>` : ''}
+      ${rec.telefono ? `<button class="btn btn-wa btn-sm" onclick="openWA('${rec.id}','${tipo}','riepilogo')">📱 Invia Riepilogo</button>` : ''}
+      <button class="btn btn-sm" style="background:#7c2d12;color:#fca5a5" onclick="deleteRecord('${rec.id}','${tipo}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function renderCrediti() {
+  renderStats();
+  const el = document.getElementById('crediti-list');
+  el.innerHTML = crediti.length ? crediti.map(c=>renderCard(c,'credito')).join('') : '<div class="empty-state"><div class="icon">💰</div><div>Nessun credito registrato</div></div>';
+}
+function renderDebiti() {
+  renderStats();
+  const el = document.getElementById('debiti-list');
+  el.innerHTML = debiti.length ? debiti.map(d=>renderCard(d,'debito')).join('') : '<div class="empty-state"><div class="icon">📤</div><div>Nessun debito registrato</div></div>';
+}
+
+// ---- TABS ----
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['crediti','debiti'].forEach(t=>document.getElementById('tab-'+t).classList.add('hidden'));
+  document.getElementById('tab-'+tab).classList.remove('hidden');
+}
+
+// ---- MODAL FORM (credito/debito) ----
+function openModal(tipo, id) {
+  document.getElementById('modal-form').classList.remove('hidden');
+  document.getElementById('form-id').value = id || '';
+  document.getElementById('form-tipo-record').value = tipo;
+  const isCredito = tipo === 'credito';
+  document.getElementById('modal-form-title').textContent = (id ? 'Modifica ' : 'Nuovo ') + (isCredito ? 'Credito' : 'Debito');
+  document.getElementById('lbl-nome').textContent = isCredito ? 'Nome Cliente *' : 'Fornitore / Creditore *';
+  document.getElementById('lbl-tipo').textContent = isCredito ? 'Tipo *' : 'Tipo *';
+  document.getElementById('lbl-data').textContent = isCredito ? 'Data Primo Credito *' : 'Data Primo Debito *';
+  document.getElementById('lbl-anticipo').textContent = isCredito ? '💳 Acconto Ricevuto (€)' : '💳 Acconto Pagato (€)';
+  document.getElementById('f-tipo').innerHTML = isCredito
+    ? '<option value="cliente">Cliente</option><option value="fornitore">Fornitore</option>'
+    : '<option value="fornitore">Fornitore</option><option value="cliente">Cliente</option>';
+
+  if (id) {
+    const rec = isCredito ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
+    document.getElementById('f-nome').value = rec.nome_cliente || rec.fornitore;
+    document.getElementById('f-telefono').value = rec.telefono || '';
+    document.getElementById('f-tipo').value = rec.tipo || 'fornitore';
+    document.getElementById('f-data').value = rec.data_primo_credito || rec.data_primo_debito;
+    document.getElementById('f-prodotto').value = rec.prodotto;
+    document.getElementById('f-motivo').value = rec.motivo || '';
+    document.getElementById('f-importo').value = rec.importo_totale;
+    document.getElementById('f-stato').value = rec.stato;
+    document.getElementById('f-note').value = rec.note || '';
+    document.getElementById('f-anticipo').value = '';
+    document.getElementById('f-anticipo-metodo').value = '';
+    document.getElementById('f-anticipo-data').value = '';
+    const p = getProssima(id, tipo);
+    document.getElementById('f-rata-importo').value = p ? p.importo : '';
+    document.getElementById('f-rata-data').value = p ? p.data_scadenza : '';
+  } else {
+    ['f-nome','f-telefono','f-prodotto','f-motivo','f-note','f-anticipo','f-rata-importo'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('f-importo').value = '';
+    document.getElementById('f-stato').value = 'aperto';
+    document.getElementById('f-data').value = dayjs().format('YYYY-MM-DD');
+    document.getElementById('f-anticipo-data').value = dayjs().format('YYYY-MM-DD');
+    document.getElementById('f-anticipo-metodo').value = '';
+    document.getElementById('f-rata-data').value = '';
+  }
+}
+
+function closeModalForm() { document.getElementById('modal-form').classList.add('hidden'); }
+
+async function saveRecord() {
+  const id = document.getElementById('form-id').value;
+  const tipo = document.getElementById('form-tipo-record').value;
+  const isCredito = tipo === 'credito';
+  const nome = document.getElementById('f-nome').value.trim();
+  const prodotto = document.getElementById('f-prodotto').value.trim();
+  const importo = parseFloat(document.getElementById('f-importo').value);
+  if (!nome || !prodotto || !importo) { alert('Compila i campi obbligatori (*)'); return; }
+
+  const dataField = isCredito ? 'data_primo_credito' : 'data_primo_debito';
+  const nomeField = isCredito ? 'nome_cliente' : 'fornitore';
+  const table = isCredito ? 'crediti' : 'debiti';
+  const rateTable = isCredito ? 'rate_crediti' : 'rate_debiti';
+  const scadTable = isCredito ? 'scadenze_crediti' : 'scadenze_debiti';
+  const fkField = isCredito ? 'credito_id' : 'debito_id';
+
+  const payload = {
+    [nomeField]: nome,
+    telefono: document.getElementById('f-telefono').value.trim() || null,
+    tipo: document.getElementById('f-tipo').value,
+    [dataField]: document.getElementById('f-data').value,
+    prodotto, motivo: document.getElementById('f-motivo').value.trim() || null,
+    importo_totale: importo, stato: document.getElementById('f-stato').value,
+    note: document.getElementById('f-note').value.trim() || null
+  };
+
+  try {
+    let recId = id;
+    if (id) {
+      await api('PATCH', `${table}?id=eq.${id}`, payload);
+    } else {
+      const res = await fetch(SUPA_URL + '/rest/v1/' + table, {
+        method: 'POST',
+        headers: { ...hdrs, 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      recId = data[0].id;
+    }
+    const anticipo = parseFloat(document.getElementById('f-anticipo').value);
+    if (!id && anticipo > 0) {
+      await api('POST', rateTable, {
+        [fkField]: recId, importo: anticipo,
+        data_pagamento: document.getElementById('f-anticipo-data').value || dayjs().format('YYYY-MM-DD'),
+        metodo_pagamento: document.getElementById('f-anticipo-metodo').value || null,
+        tipo: 'anticipo'
+      });
+    }
+    const rI = parseFloat(document.getElementById('f-rata-importo').value);
+    const rD = document.getElementById('f-rata-data').value;
+    if (rI > 0 && rD) {
+      await api('DELETE', `${scadTable}?${fkField}=eq.${recId}&pagata=eq.false`);
+      await api('POST', scadTable, { [fkField]: recId, importo: rI, data_scadenza: rD, pagata: false });
+    }
+    closeModalForm();
+    await loadAll();
+    const rec = isCredito ? crediti.find(x=>x.id===recId) : debiti.find(x=>x.id===recId);
+    if (rec && rec.telefono) openWA(recId, tipo, 'riepilogo');
+  } catch(e) { alert('Errore: ' + e.message); }
+}
+
+async function deleteRecord(id, tipo) {
+  const pwd = prompt('Inserisci la password per eliminare:');
+  if (pwd === null) return;
+  if (pwd !== PWD_DELETE) { alert('Password errata.'); return; }
+  const isCredito = tipo === 'credito';
+  const table = isCredito ? 'crediti' : 'debiti';
+  const fk = isCredito ? 'credito_id' : 'debito_id';
+  await api('DELETE', `${isCredito?'scadenze_crediti':'scadenze_debiti'}?${fk}=eq.${id}`);
+  await api('DELETE', `${isCredito?'rate_crediti':'rate_debiti'}?${fk}=eq.${id}`);
+  await api('DELETE', `${table}?id=eq.${id}`);
+  await loadAll();
+}
+
+// ---- DETTAGLIO ----
+function openDettaglio(id, tipo) {
+  const isCredito = tipo === 'credito';
+  const rec = isCredito ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
+  const rs = (isCredito ? rateC : rateD).filter(r=>r.credito_id===id||r.debito_id===id).sort((a,b)=>new Date(a.data_pagamento)-new Date(b.data_pagamento));
+  const sc = (isCredito ? scadenzeC : scadenzeD).filter(s=>s.credito_id===id||s.debito_id===id);
+  const saldo = getSaldo(id, tipo);
+  const nome = rec.nome_cliente || rec.fornitore;
+  document.getElementById('det-title').textContent = `Dettaglio — ${nome}`;
+  document.getElementById('det-body').innerHTML = `
+    <div class="card-details" style="margin-bottom:16px">
+      <div class="detail-item"><label>Prodotto</label><span>${rec.prodotto}</span></div>
+      <div class="detail-item"><label>Motivo</label><span>${rec.motivo||'—'}</span></div>
+      <div class="detail-item"><label>Importo Totale</label><span>€${parseFloat(rec.importo_totale).toFixed(2)}</span></div>
+      <div class="detail-item"><label>Saldo Residuo</label><span class="saldo">€${saldo.toFixed(2)}</span></div>
+      <div class="detail-item"><label>Telefono</label><span>${rec.telefono||'—'}</span></div>
+      <div class="detail-item"><label>Stato</label><span class="badge badge-${rec.stato}">${rec.stato.replace('_',' ')}</span></div>
+    </div>
+    <hr class="divider">
+    <div style="font-weight:700;margin-bottom:10px">Storico Pagamenti</div>
+    <div class="rata-list">${rs.length ? rs.map(r=>`<div class="rata-item" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="display:flex;justify-content:space-between;width:100%"><div><strong>€${parseFloat(r.importo).toFixed(2)}</strong> <span style="color:#94a3b8">(${r.tipo})</span></div><div>${dayjs(r.data_pagamento).format('DD/MM/YYYY')}${r.metodo_pagamento?` · ${r.metodo_pagamento}`:''}</div></div>${r.note?`<div style="font-size:0.78rem;color:#f59e0b">📝 ${r.note}</div>`:''}</div>`).join('') : '<div style="color:#94a3b8;font-size:0.85rem">Nessun pagamento registrato</div>'}</div>
+    <hr class="divider">
+    <div style="font-weight:700;margin-bottom:10px">Scadenze Future</div>
+    <div class="rata-list">${sc.length ? sc.map(s=>`<div class="rata-item"><div><strong>€${parseFloat(s.importo).toFixed(2)}</strong></div><div>${dayjs(s.data_scadenza).format('DD/MM/YYYY')} <span class="badge ${s.pagata?'badge-chiuso':'badge-aperto'}" style="margin-left:8px">${s.pagata?'Pagata':'In attesa'}</span></div></div>`).join('') : '<div style="color:#94a3b8;font-size:0.85rem">Nessuna scadenza impostata</div>'}</div>
+    <hr class="divider">
+    <div style="font-weight:700;margin-bottom:8px">📝 Note aggiuntive</div>
+    <textarea id="det-note" rows="3" style="width:100%;background:#0f1117;border:1px solid #2d3148;border-radius:7px;padding:9px 12px;color:#e2e8f0;font-size:0.85rem;outline:none;resize:vertical">${rec.note||''}</textarea>
+    <div style="margin-top:8px;text-align:right">
+      <button class="btn btn-ghost btn-sm" onclick="saveNote('${id}','${tipo}')">💾 Salva Note</button>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="closeModalDettaglio();openModalRata('${id}','${tipo}')">+ Aggiungi Pagamento</button>
+      ${rec.telefono?`<button class="btn btn-wa btn-sm" onclick="closeModalDettaglio();openWA('${id}','${tipo}','promemoria')">📱 Promemoria</button>`:''}
+      ${rec.telefono?`<button class="btn btn-wa btn-sm" onclick="closeModalDettaglio();openWA('${id}','${tipo}','riepilogo')">📱 Invia Riepilogo</button>`:''}
+    </div>`;
+  document.getElementById('modal-dettaglio').classList.remove('hidden');
+}
+function closeModalDettaglio() { document.getElementById('modal-dettaglio').classList.add('hidden'); }
+
+async function saveNote(id, tipo) {
+  const note = document.getElementById('det-note').value.trim();
+  const table = tipo === 'credito' ? 'crediti' : 'debiti';
+  try {
+    await api('PATCH', `${table}?id=eq.${id}`, { note: note || null });
+    await loadAll();
+    // Aggiorna il campo visivo senza chiudere il modale
+    const btn = document.querySelector('#det-body .btn-ghost.btn-sm');
+    if (btn) { btn.textContent = '✅ Salvato!'; setTimeout(()=>btn.textContent='💾 Salva Note', 1500); }
+  } catch(e) { alert('Errore salvataggio note: ' + e.message); }
+}
+
+// ---- MODAL RATA ----
+function openModalRata(id, tipo) {
+  document.getElementById('rata-record-id').value = id;
+  document.getElementById('rata-record-tipo').value = tipo;
+  document.getElementById('rata-title').textContent = tipo === 'credito' ? 'Aggiungi Pagamento Ricevuto' : 'Aggiungi Pagamento Effettuato';
+  document.getElementById('lbl-rata-importo').textContent = tipo === 'credito' ? 'Importo Ricevuto (€) *' : 'Importo Pagato (€) *';
+  document.getElementById('rata-importo').value = '';
+  document.getElementById('rata-data').value = dayjs().format('YYYY-MM-DD');
+  document.getElementById('rata-metodo').value = '';
+  document.getElementById('rata-tipo').value = 'rata';
+  const p = getProssima(id, tipo);
+  document.getElementById('rata-prossima-importo').value = p ? p.importo : '';
+  document.getElementById('rata-prossima-data').value = '';
+  document.getElementById('modal-rata').classList.remove('hidden');
+}
+function closeModalRata() { document.getElementById('modal-rata').classList.add('hidden'); }
+
+async function saveRata() {
+  const id = document.getElementById('rata-record-id').value;
+  const tipo = document.getElementById('rata-record-tipo').value;
+  const isCredito = tipo === 'credito';
+  const importo = parseFloat(document.getElementById('rata-importo').value);
+  const data = document.getElementById('rata-data').value;
+  if (!importo || !data) { alert('Inserisci importo e data'); return; }
+  const fk = isCredito ? 'credito_id' : 'debito_id';
+  const rateTable = isCredito ? 'rate_crediti' : 'rate_debiti';
+  const scadTable = isCredito ? 'scadenze_crediti' : 'scadenze_debiti';
+  try {
+    const rataPayload = {
+      [fk]: id, importo, data_pagamento: data,
+      metodo_pagamento: document.getElementById('rata-metodo').value || null,
+      tipo: document.getElementById('rata-tipo').value,
+      note: document.getElementById('rata-note').value.trim() || null
+    };
+    const rataRes = await fetch(SUPA_URL + '/rest/v1/' + rateTable, {
+      method: 'POST',
+      headers: { ...hdrs, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(rataPayload)
+    });
+    if (!rataRes.ok) throw new Error(await rataRes.text());
+    const pi = parseFloat(document.getElementById('rata-prossima-importo').value);
+    const pd = document.getElementById('rata-prossima-data').value;
+    if (pi > 0 && pd) {
+      await api('DELETE', `${scadTable}?${fk}=eq.${id}&pagata=eq.false`);
+      await api('POST', scadTable, { [fk]: id, importo: pi, data_scadenza: pd, pagata: false });
+    }
+    await loadAll();
+    if (getSaldo(id, tipo) <= 0) {
+      const table = isCredito ? 'crediti' : 'debiti';
+      await api('PATCH', `${table}?id=eq.${id}`, { stato: 'chiuso' });
+      await loadAll();
+    }
+    closeModalRata();
+    const rec = isCredito ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
+    if (rec && rec.telefono) openWA(id, tipo, 'riepilogo');
+  } catch(e) { alert('Errore: ' + e.message); }
+}
+
+// ---- WHATSAPP ----
+function openWA(id, tipo, modalita) {
+  const isCredito = tipo === 'credito';
+  const rec = isCredito ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
+  const nome = rec.nome_cliente || rec.fornitore;
+  const saldo = getSaldo(id, tipo);
+  const pagato = getPagato(id, tipo);
+  const prossima = getProssima(id, tipo);
+  const oggi = dayjs().format('DD/MM/YYYY');
+  waPhone = rec.telefono;
+  if (modalita === 'promemoria') {
+    waMsg = `Buongiorno ${nome}, volevo ricordarti che si sta avvicinando la scadenza del pagamento da effettuare per ${rec.prodotto}.\nLa differenza da dare è: €${saldo.toFixed(2)}\nAggiornata al: ${oggi}`;
+  } else {
+    waMsg = `Buongiorno ${nome}, ecco il riepilogo aggiornato al ${oggi}:\n\nProdotto: ${rec.prodotto}\nImporto totale: €${parseFloat(rec.importo_totale).toFixed(2)}\nPagato finora: €${pagato.toFixed(2)}\nSaldo residuo: €${saldo.toFixed(2)}${prossima?`\nProssima scadenza: ${dayjs(prossima.data_scadenza).format('DD/MM/YYYY')} (€${parseFloat(prossima.importo).toFixed(2)})`:''}`;
+  }
+  document.getElementById('wa-text').textContent = waMsg;
+  document.getElementById('modal-wa').classList.remove('hidden');
+}
+function closeModalWA() { document.getElementById('modal-wa').classList.add('hidden'); }
+function sendWA() {
+  const num = waPhone.replace(/\D/g,'');
+  window.open(`https://wa.me/${num.startsWith('39')?num:'39'+num}?text=${encodeURIComponent(waMsg)}`, '_blank');
+  closeModalWA();
+}
+</script>
+</body>
+</html>
