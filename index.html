@@ -569,7 +569,6 @@ async function saveRata() {
       note: document.getElementById('rata-note').value.trim() || null
     };
     await api('POST', rateTable, rataPayload);
-    if (!rataRes.ok) throw new Error(await rataRes.text());
     const pi = parseFloat(document.getElementById('rata-prossima-importo').value);
     const pd = document.getElementById('rata-prossima-data').value;
     if (pi > 0 && pd) {
