@@ -22,18 +22,17 @@
   header { background: #1a1d2e; border-bottom: 2px solid #e63946; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
   header h1 { font-size: 1.3rem; font-weight: 700; color: #fff; }
   header span { background: #e63946; color: #fff; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
-  .tabs { display: flex; background: #1a1d2e; border-bottom: 1px solid #2d3148; }
-  .tab { padding: 14px 28px; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: #94a3b8; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tabs { display: flex; background: #1a1d2e; border-bottom: 1px solid #2d3148; overflow-x: auto; }
+  .tab { padding: 14px 24px; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: #94a3b8; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
   .tab.active { color: #e63946; border-bottom-color: #e63946; }
   .tab:hover:not(.active) { color: #e2e8f0; }
   .container { padding: 24px; max-width: 1100px; margin: 0 auto; }
   .alert-banner { background: #7c2d12; border: 1px solid #ea580c; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; flex-wrap: wrap; }
   .alert-banner .close-btn { margin-left: auto; cursor: pointer; opacity: 0.7; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 24px; }
   .stat-card { background: #1a1d2e; border-radius: 10px; padding: 18px; border-left: 4px solid #e63946; }
   .stat-card.green { border-left-color: #22c55e; }
   .stat-card.yellow { border-left-color: #f59e0b; }
-  .stat-card.blue { border-left-color: #3b82f6; }
   .stat-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
   .stat-value { font-size: 1.5rem; font-weight: 700; }
   .btn { padding: 9px 18px; border-radius: 7px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
@@ -46,11 +45,19 @@
   .btn-sm { padding: 5px 11px; font-size: 0.78rem; }
   .btn-wa { background: #25d366; color: #fff; }
   .btn-wa:hover { background: #128c7e; }
-  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .btn-archive { background: #7c3aed; color: #fff; }
+  .btn-archive:hover { background: #6d28d9; }
+  .btn-excel { background: #16a34a; color: #fff; }
+  .btn-excel:hover { background: #15803d; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
   .section-title { font-size: 1.1rem; font-weight: 700; }
+  .archive-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .archive-tab { padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #2d3148; color: #94a3b8; border: none; transition: all 0.2s; }
+  .archive-tab.active { background: #7c3aed; color: #fff; }
   .card-list { display: flex; flex-direction: column; gap: 12px; }
   .card { background: #1a1d2e; border-radius: 10px; padding: 18px; border: 1px solid #2d3148; transition: border-color 0.2s; }
   .card:hover { border-color: #4d5580; }
+  .card.archived { border-left: 3px solid #7c3aed; opacity: 0.85; }
   .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
   .card-name { font-weight: 700; font-size: 1rem; }
   .card-product { font-size: 0.85rem; color: #94a3b8; margin-top: 2px; }
@@ -105,6 +112,7 @@
   <div class="tabs">
     <div class="tab active" onclick="switchTab('crediti',this)">💰 Crediti</div>
     <div class="tab" onclick="switchTab('debiti',this)">📤 Debiti</div>
+    <div class="tab" onclick="switchTab('archivio',this)">📦 Archivio</div>
   </div>
   <div class="container">
     <div id="alert-container"></div>
@@ -112,7 +120,7 @@
     <!-- CREDITI -->
     <div id="tab-crediti">
       <div class="stats">
-        <div class="stat-card"><div class="stat-label">Totale Crediti Aperti</div><div class="stat-value" id="stat-totale">€0</div></div>
+        <div class="stat-card"><div class="stat-label">Totale Aperti</div><div class="stat-value" id="stat-totale">€0</div></div>
         <div class="stat-card yellow"><div class="stat-label">In Scadenza (3gg)</div><div class="stat-value" id="stat-scadenza">0</div></div>
         <div class="stat-card" style="border-left-color:#e63946"><div class="stat-label">In Ritardo</div><div class="stat-value" id="stat-ritardo">0</div></div>
         <div class="stat-card green"><div class="stat-label">Chiusi</div><div class="stat-value" id="stat-chiusi">0</div></div>
@@ -132,25 +140,47 @@
       <div class="section-header"><div class="section-title">Elenco Debiti</div><button class="btn btn-primary" onclick="openModal('debito')">+ Nuovo Debito</button></div>
       <div id="debiti-list" class="card-list"><div class="loading">Caricamento...</div></div>
     </div>
+
+    <!-- ARCHIVIO -->
+    <div id="tab-archivio" class="hidden">
+      <div class="archive-tabs">
+        <button class="archive-tab active" onclick="switchArchiveTab('crediti',this)">💰 Crediti Archiviati</button>
+        <button class="archive-tab" onclick="switchArchiveTab('debiti',this)">📤 Debiti Archiviati</button>
+      </div>
+      <div id="archive-crediti">
+        <div class="section-header">
+          <div class="section-title">Crediti Archiviati</div>
+          <button class="btn btn-excel btn-sm" onclick="exportExcel('crediti')">⬇️ Esporta Excel</button>
+        </div>
+        <div id="archivio-crediti-list" class="card-list"><div class="loading">Caricamento...</div></div>
+      </div>
+      <div id="archive-debiti" class="hidden">
+        <div class="section-header">
+          <div class="section-title">Debiti Archiviati</div>
+          <button class="btn btn-excel btn-sm" onclick="exportExcel('debiti')">⬇️ Esporta Excel</button>
+        </div>
+        <div id="archivio-debiti-list" class="card-list"><div class="loading">Caricamento...</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- MODAL CREDITO/DEBITO -->
+<!-- MODAL FORM -->
 <div id="modal-form" class="modal-overlay hidden">
   <div class="modal">
     <h2 id="modal-form-title">Nuovo</h2>
     <input type="hidden" id="form-id">
     <input type="hidden" id="form-tipo-record">
     <div class="form-row">
-      <div class="form-group"><label id="lbl-nome">Nome *</label><input type="text" id="f-nome" placeholder="Es. Mario Rossi"></div>
+      <div class="form-group"><label id="lbl-nome">Nome *</label><input type="text" id="f-nome"></div>
       <div class="form-group"><label>Telefono (WhatsApp)</label><input type="text" id="f-telefono" placeholder="Es. 3331234567"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label id="lbl-tipo">Tipo *</label><select id="f-tipo"><option value="cliente">Cliente</option><option value="fornitore">Fornitore</option></select></div>
+      <div class="form-group"><label>Tipo *</label><select id="f-tipo"><option value="cliente">Cliente</option><option value="fornitore">Fornitore</option></select></div>
       <div class="form-group"><label id="lbl-data">Data *</label><input type="date" id="f-data"></div>
     </div>
     <div class="form-group"><label>Prodotto / Oggetto *</label><input type="text" id="f-prodotto" placeholder="Es. iPhone 13 ricondizionato"></div>
-    <div class="form-group"><label>Motivo *</label><input type="text" id="f-motivo" placeholder="Es. Vendita rateale, acquisto ricambi..."></div>
+    <div class="form-group"><label>Motivo *</label><input type="text" id="f-motivo" placeholder="Es. Vendita rateale..."></div>
     <div class="form-row">
       <div class="form-group"><label>Importo Totale (€) *</label><input type="number" id="f-importo" placeholder="0.00" step="0.01"></div>
       <div class="form-group"><label>Stato</label><select id="f-stato"><option value="aperto">Aperto</option><option value="in_ritardo">In Ritardo</option><option value="chiuso">Chiuso</option></select></div>
@@ -195,7 +225,7 @@
       <div class="form-group"><label>Metodo</label><select id="rata-metodo"><option value="">-- Seleziona --</option><option>Contanti</option><option>Bonifico</option><option>Carta</option><option>PayPal</option><option>Satispay</option></select></div>
     </div>
     <div class="form-group"><label>Tipo</label><select id="rata-tipo"><option value="rata">Rata</option><option value="anticipo">Acconto</option></select></div>
-    <div class="form-group"><label>📝 Note (opzionale)</label><textarea id="rata-note" rows="2" placeholder="Es. ha preso anche cover, ha portato altro dispositivo..."></textarea></div>
+    <div class="form-group"><label>📝 Note (opzionale)</label><textarea id="rata-note" rows="2" placeholder="Es. ha preso anche cover..."></textarea></div>
     <hr class="divider">
     <div style="font-size:0.85rem;color:#94a3b8;margin-bottom:8px">Aggiorna prossima scadenza (opzionale):</div>
     <div class="form-row">
@@ -227,13 +257,12 @@ const SUPA_URL = 'https://lpepweefewzhyolvojvh.supabase.co';
 const SUPA_KEY = 'sb_publishable_NIjXyr3nAfg7icrrX9foNA_Pi8fNKZH';
 const PWD_LOGIN = 'Pao2024';
 const PWD_DELETE = '19921994';
-const hdrs = { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
+const hdrs = { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'return=representation' };
 
 let crediti = [], rateC = [], scadenzeC = [];
 let debiti = [], rateD = [], scadenzeD = [];
 let waPhone = '', waMsg = '';
 
-// ---- LOGIN ----
 function checkLogin() {
   if (document.getElementById('pwd-input').value === PWD_LOGIN) {
     document.getElementById('login-screen').style.display = 'none';
@@ -245,9 +274,8 @@ function checkLogin() {
   }
 }
 
-// ---- API ----
 async function api(method, path, body) {
-  const opts = { method, headers: { ...hdrs, 'Prefer': 'return=representation' } };
+  const opts = { method, headers: hdrs };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(SUPA_URL + '/rest/v1/' + path, opts);
   if (!r.ok) throw new Error(await r.text());
@@ -266,11 +294,10 @@ async function loadAll() {
       api('GET', 'rate_debiti?select=*'),
       api('GET', 'scadenze_debiti?select=*'),
     ]);
-    renderCrediti(); renderDebiti(); checkScadenze();
+    renderCrediti(); renderDebiti(); renderArchivio(); checkScadenze();
   } catch(e) { console.error(e); }
 }
 
-// ---- CALCOLI ----
 function getSaldo(id, tipo) {
   const rec = tipo === 'credito' ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
   if (!rec) return 0;
@@ -287,47 +314,46 @@ function getProssima(id, tipo) {
   return sc.filter(s=>(s.credito_id===id||s.debito_id===id)&&!s.pagata).sort((a,b)=>new Date(a.data_scadenza)-new Date(b.data_scadenza))[0];
 }
 
-// ---- STATS ----
 function renderStats() {
-  const cAperti = crediti.filter(c=>c.stato!=='chiuso');
+  const cAperti = crediti.filter(c=>c.stato!=='chiuso'&&!c.archiviato);
   document.getElementById('stat-totale').textContent = '€'+cAperti.reduce((s,c)=>s+getSaldo(c.id,'credito'),0).toFixed(2);
-  document.getElementById('stat-ritardo').textContent = crediti.filter(c=>c.stato==='in_ritardo').length;
-  document.getElementById('stat-chiusi').textContent = crediti.filter(c=>c.stato==='chiuso').length;
+  document.getElementById('stat-ritardo').textContent = crediti.filter(c=>c.stato==='in_ritardo'&&!c.archiviato).length;
+  document.getElementById('stat-chiusi').textContent = crediti.filter(c=>c.stato==='chiuso'&&!c.archiviato).length;
   const oggi = dayjs();
   document.getElementById('stat-scadenza').textContent = scadenzeC.filter(s=>!s.pagata&&dayjs(s.data_scadenza).diff(oggi,'day')>=0&&dayjs(s.data_scadenza).diff(oggi,'day')<=3).length;
-  const dAperti = debiti.filter(d=>d.stato!=='chiuso');
+  const dAperti = debiti.filter(d=>d.stato!=='chiuso'&&!d.archiviato);
   document.getElementById('stat-debiti-totale').textContent = '€'+dAperti.reduce((s,d)=>s+getSaldo(d.id,'debito'),0).toFixed(2);
-  document.getElementById('stat-debiti-ritardo').textContent = debiti.filter(d=>d.stato==='in_ritardo').length;
-  document.getElementById('stat-debiti-chiusi').textContent = debiti.filter(d=>d.stato==='chiuso').length;
+  document.getElementById('stat-debiti-ritardo').textContent = debiti.filter(d=>d.stato==='in_ritardo'&&!d.archiviato).length;
+  document.getElementById('stat-debiti-chiusi').textContent = debiti.filter(d=>d.stato==='chiuso'&&!d.archiviato).length;
   document.getElementById('stat-debiti-scadenza').textContent = scadenzeD.filter(s=>!s.pagata&&dayjs(s.data_scadenza).diff(oggi,'day')>=0&&dayjs(s.data_scadenza).diff(oggi,'day')<=3).length;
 }
 
 function checkScadenze() {
   const oggi = dayjs(); const avvisi = [];
-  [...scadenzeC.map(s=>({...s,_tipo:'credito'})), ...scadenzeD.map(s=>({...s,_tipo:'debito'}))].forEach(s => {
-    if (!s.pagata) {
-      const diff = dayjs(s.data_scadenza).diff(oggi,'day');
-      if (diff>=0&&diff<=3) {
-        const rec = s._tipo==='credito' ? crediti.find(x=>x.id===s.credito_id) : debiti.find(x=>x.id===s.debito_id);
-        if (rec) avvisi.push(`<strong>${rec.nome_cliente||rec.fornitore}</strong> (${rec.prodotto}) — €${parseFloat(s.importo).toFixed(2)} il ${dayjs(s.data_scadenza).format('DD/MM/YYYY')}`);
+  [...scadenzeC.map(s=>({...s,_tipo:'credito'})),...scadenzeD.map(s=>({...s,_tipo:'debito'}))].forEach(s=>{
+    if(!s.pagata){
+      const diff=dayjs(s.data_scadenza).diff(oggi,'day');
+      if(diff>=0&&diff<=3){
+        const rec=s._tipo==='credito'?crediti.find(x=>x.id===s.credito_id):debiti.find(x=>x.id===s.debito_id);
+        if(rec&&!rec.archiviato) avvisi.push(`<strong>${rec.nome_cliente||rec.fornitore}</strong> (${rec.prodotto}) — €${parseFloat(s.importo).toFixed(2)} il ${dayjs(s.data_scadenza).format('DD/MM/YYYY')}`);
       }
     }
   });
-  document.getElementById('alert-container').innerHTML = avvisi.length ? `<div class="alert-banner">🔔 <strong>${avvisi.length} scadenza/e nei prossimi 3 giorni:</strong> ${avvisi.join(' · ')} <span class="close-btn" onclick="this.parentElement.remove()">✕</span></div>` : '';
+  document.getElementById('alert-container').innerHTML = avvisi.length?`<div class="alert-banner">🔔 <strong>${avvisi.length} scadenza/e nei prossimi 3 giorni:</strong> ${avvisi.join(' · ')} <span class="close-btn" onclick="this.parentElement.remove()">✕</span></div>`:'';
 }
 
-// ---- RENDER CARD (universale) ----
-function renderCard(rec, tipo) {
+function renderCard(rec, tipo, isArchivio) {
   const saldo = getSaldo(rec.id, tipo);
   const pagato = getPagato(rec.id, tipo);
   const prossima = getProssima(rec.id, tipo);
   const nome = rec.nome_cliente || rec.fornitore;
-  return `<div class="card">
+  const chiuso = rec.stato === 'chiuso';
+  return `<div class="card${rec.archiviato?' archived':''}">
     <div class="card-header">
       <div>
         <div class="card-name">${nome} <span style="color:#94a3b8;font-weight:400;font-size:0.8rem">(${rec.tipo||tipo})</span></div>
         <div class="card-product">📦 ${rec.prodotto}</div>
-        ${rec.motivo ? `<div class="card-product">📝 ${rec.motivo}</div>` : ''}
+        ${rec.motivo?`<div class="card-product">📝 ${rec.motivo}</div>`:''}
       </div>
       <span class="badge badge-${rec.stato}">${rec.stato.replace('_',' ')}</span>
     </div>
@@ -336,16 +362,17 @@ function renderCard(rec, tipo) {
       <div class="detail-item"><label>Pagato</label><span style="color:#22c55e">€${pagato.toFixed(2)}</span></div>
       <div class="detail-item"><label>Saldo Residuo</label><span class="saldo">€${saldo.toFixed(2)}</span></div>
       <div class="detail-item"><label>Data</label><span>${dayjs(rec.data_primo_credito||rec.data_primo_debito).format('DD/MM/YYYY')}</span></div>
-      ${prossima ? `<div class="detail-item"><label>Prossima Rata</label><span style="color:#f59e0b">€${parseFloat(prossima.importo).toFixed(2)} — ${dayjs(prossima.data_scadenza).format('DD/MM/YYYY')}</span></div>` : ''}
-      ${rec.telefono ? `<div class="detail-item"><label>Telefono</label><span>${rec.telefono}</span></div>` : ''}
+      ${prossima?`<div class="detail-item"><label>Prossima Rata</label><span style="color:#f59e0b">€${parseFloat(prossima.importo).toFixed(2)} — ${dayjs(prossima.data_scadenza).format('DD/MM/YYYY')}</span></div>`:''}
+      ${rec.telefono?`<div class="detail-item"><label>Telefono</label><span>${rec.telefono}</span></div>`:''}
     </div>
     <div class="card-actions">
-      <button class="btn btn-ghost btn-sm" onclick="openDettaglio('${rec.id}','${tipo}')">📋 Dettaglio</button>
-      <button class="btn btn-ghost btn-sm" onclick="openModalRata('${rec.id}','${tipo}')">+ Pagamento</button>
-      <button class="btn btn-ghost btn-sm" onclick="openModal('${tipo}','${rec.id}')">✏️ Modifica</button>
-      ${rec.telefono ? `<button class="btn btn-wa btn-sm" onclick="openWA('${rec.id}','${tipo}','promemoria')">📱 Promemoria</button>` : ''}
-      ${rec.telefono ? `<button class="btn btn-wa btn-sm" onclick="openWA('${rec.id}','${tipo}','riepilogo')">📱 Invia Riepilogo</button>` : ''}
-      <button class="btn btn-sm" style="background:#7c2d12;color:#fca5a5" onclick="deleteRecord('${rec.id}','${tipo}')">🗑️</button>
+      ${!isArchivio?`<button class="btn btn-ghost btn-sm" onclick="openDettaglio('${rec.id}','${tipo}')">📋 Dettaglio</button>`:''}
+      ${!isArchivio?`<button class="btn btn-ghost btn-sm" onclick="openModalRata('${rec.id}','${tipo}')">+ Pagamento</button>`:''}
+      ${!isArchivio?`<button class="btn btn-ghost btn-sm" onclick="openModal('${tipo}','${rec.id}')">✏️ Modifica</button>`:''}
+      ${!isArchivio&&rec.telefono?`<button class="btn btn-wa btn-sm" onclick="openWA('${rec.id}','${tipo}','promemoria')">📱 Promemoria</button>`:''}
+      ${!isArchivio&&rec.telefono?`<button class="btn btn-wa btn-sm" onclick="openWA('${rec.id}','${tipo}','riepilogo')">📱 Invia Riepilogo</button>`:''}
+      ${!isArchivio&&chiuso&&!rec.archiviato?`<button class="btn btn-archive btn-sm" onclick="archiviaRecord('${rec.id}','${tipo}')">📦 Archivia</button>`:''}
+      ${!isArchivio?`<button class="btn btn-sm" style="background:#7c2d12;color:#fca5a5" onclick="deleteRecord('${rec.id}','${tipo}')">🗑️</button>`:''}
     </div>
   </div>`;
 }
@@ -353,93 +380,141 @@ function renderCard(rec, tipo) {
 function renderCrediti() {
   renderStats();
   const el = document.getElementById('crediti-list');
-  el.innerHTML = crediti.length ? crediti.map(c=>renderCard(c,'credito')).join('') : '<div class="empty-state"><div class="icon">💰</div><div>Nessun credito registrato</div></div>';
+  const lista = crediti.filter(c=>!c.archiviato);
+  el.innerHTML = lista.length ? lista.map(c=>renderCard(c,'credito',false)).join('') : '<div class="empty-state"><div class="icon">💰</div><div>Nessun credito registrato</div></div>';
 }
 function renderDebiti() {
   renderStats();
   const el = document.getElementById('debiti-list');
-  el.innerHTML = debiti.length ? debiti.map(d=>renderCard(d,'debito')).join('') : '<div class="empty-state"><div class="icon">📤</div><div>Nessun debito registrato</div></div>';
+  const lista = debiti.filter(d=>!d.archiviato);
+  el.innerHTML = lista.length ? lista.map(d=>renderCard(d,'debito',false)).join('') : '<div class="empty-state"><div class="icon">📤</div><div>Nessun debito registrato</div></div>';
+}
+function renderArchivio() {
+  const ac = crediti.filter(c=>c.archiviato);
+  const ad = debiti.filter(d=>d.archiviato);
+  document.getElementById('archivio-crediti-list').innerHTML = ac.length ? ac.map(c=>renderCard(c,'credito',true)).join('') : '<div class="empty-state"><div class="icon">📦</div><div>Nessun credito archiviato</div></div>';
+  document.getElementById('archivio-debiti-list').innerHTML = ad.length ? ad.map(d=>renderCard(d,'debito',true)).join('') : '<div class="empty-state"><div class="icon">📦</div><div>Nessun debito archiviato</div></div>';
 }
 
-// ---- TABS ----
 function switchTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['crediti','debiti'].forEach(t=>document.getElementById('tab-'+t).classList.add('hidden'));
+  ['crediti','debiti','archivio'].forEach(t=>document.getElementById('tab-'+t).classList.add('hidden'));
   document.getElementById('tab-'+tab).classList.remove('hidden');
 }
 
-// ---- MODAL FORM (credito/debito) ----
+function switchArchiveTab(tab, el) {
+  document.querySelectorAll('.archive-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('archive-crediti').classList.add('hidden');
+  document.getElementById('archive-debiti').classList.add('hidden');
+  document.getElementById('archive-'+tab).classList.remove('hidden');
+}
+
+async function archiviaRecord(id, tipo) {
+  if (!confirm('Archiviare questo record? Verrà spostato nell\'archivio.')) return;
+  const table = tipo === 'credito' ? 'crediti' : 'debiti';
+  await api('PATCH', `${table}?id=eq.${id}`, { archiviato: true });
+  await loadAll();
+}
+
+// ---- EXPORT EXCEL ----
+function exportExcel(tipo) {
+  const lista = tipo === 'crediti' ? crediti.filter(c=>c.archiviato) : debiti.filter(d=>d.archiviato);
+  if (!lista.length) { alert('Nessun record archiviato da esportare.'); return; }
+  const rows = [['Nome','Tipo','Prodotto','Motivo','Importo Totale','Pagato','Saldo','Data','Stato','Note']];
+  lista.forEach(rec => {
+    const pagato = getPagato(rec.id, tipo === 'crediti' ? 'credito' : 'debito');
+    const saldo = getSaldo(rec.id, tipo === 'crediti' ? 'credito' : 'debito');
+    rows.push([
+      rec.nome_cliente || rec.fornitore,
+      rec.tipo || '',
+      rec.prodotto || '',
+      rec.motivo || '',
+      parseFloat(rec.importo_totale).toFixed(2),
+      pagato.toFixed(2),
+      saldo.toFixed(2),
+      dayjs(rec.data_primo_credito || rec.data_primo_debito).format('DD/MM/YYYY'),
+      rec.stato,
+      rec.note || ''
+    ]);
+    // Aggiungi righe pagamenti
+    const rs = tipo === 'crediti' ? rateC.filter(r=>r.credito_id===rec.id) : rateD.filter(r=>r.debito_id===rec.id);
+    rs.forEach(r => {
+      rows.push(['', '', `  → Pagamento (${r.tipo})`, r.note||'', '', r.importo, '', dayjs(r.data_pagamento).format('DD/MM/YYYY'), r.metodo_pagamento||'', '']);
+    });
+  });
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const bom = '\uFEFF';
+  const blob = new Blob([bom+csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `paotech-${tipo}-archiviati-${dayjs().format('YYYY-MM-DD')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---- MODAL FORM ----
 function openModal(tipo, id) {
   document.getElementById('modal-form').classList.remove('hidden');
   document.getElementById('form-id').value = id || '';
   document.getElementById('form-tipo-record').value = tipo;
-  const isCredito = tipo === 'credito';
-  document.getElementById('modal-form-title').textContent = (id ? 'Modifica ' : 'Nuovo ') + (isCredito ? 'Credito' : 'Debito');
-  document.getElementById('lbl-nome').textContent = isCredito ? 'Nome Cliente *' : 'Fornitore / Creditore *';
-  document.getElementById('lbl-tipo').textContent = isCredito ? 'Tipo *' : 'Tipo *';
-  document.getElementById('lbl-data').textContent = isCredito ? 'Data Primo Credito *' : 'Data Primo Debito *';
-  document.getElementById('lbl-anticipo').textContent = isCredito ? '💳 Acconto Ricevuto (€)' : '💳 Acconto Pagato (€)';
-  document.getElementById('f-tipo').innerHTML = isCredito
+  const isC = tipo === 'credito';
+  document.getElementById('modal-form-title').textContent = (id?'Modifica ':'Nuovo ')+(isC?'Credito':'Debito');
+  document.getElementById('lbl-nome').textContent = isC ? 'Nome Cliente *' : 'Fornitore / Creditore *';
+  document.getElementById('lbl-data').textContent = isC ? 'Data Primo Credito *' : 'Data Primo Debito *';
+  document.getElementById('lbl-anticipo').textContent = isC ? '💳 Acconto Ricevuto (€)' : '💳 Acconto Pagato (€)';
+  document.getElementById('f-tipo').innerHTML = isC
     ? '<option value="cliente">Cliente</option><option value="fornitore">Fornitore</option>'
     : '<option value="fornitore">Fornitore</option><option value="cliente">Cliente</option>';
-
   if (id) {
-    const rec = isCredito ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
-    document.getElementById('f-nome').value = rec.nome_cliente || rec.fornitore;
-    document.getElementById('f-telefono').value = rec.telefono || '';
-    document.getElementById('f-tipo').value = rec.tipo || 'fornitore';
-    document.getElementById('f-data').value = rec.data_primo_credito || rec.data_primo_debito;
+    const rec = isC ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
+    document.getElementById('f-nome').value = rec.nome_cliente||rec.fornitore;
+    document.getElementById('f-telefono').value = rec.telefono||'';
+    document.getElementById('f-tipo').value = rec.tipo||'fornitore';
+    document.getElementById('f-data').value = rec.data_primo_credito||rec.data_primo_debito;
     document.getElementById('f-prodotto').value = rec.prodotto;
-    document.getElementById('f-motivo').value = rec.motivo || '';
+    document.getElementById('f-motivo').value = rec.motivo||'';
     document.getElementById('f-importo').value = rec.importo_totale;
     document.getElementById('f-stato').value = rec.stato;
-    document.getElementById('f-note').value = rec.note || '';
+    document.getElementById('f-note').value = rec.note||'';
     document.getElementById('f-anticipo').value = '';
     document.getElementById('f-anticipo-metodo').value = '';
     document.getElementById('f-anticipo-data').value = '';
     const p = getProssima(id, tipo);
-    document.getElementById('f-rata-importo').value = p ? p.importo : '';
-    document.getElementById('f-rata-data').value = p ? p.data_scadenza : '';
+    document.getElementById('f-rata-importo').value = p?p.importo:'';
+    document.getElementById('f-rata-data').value = p?p.data_scadenza:'';
   } else {
     ['f-nome','f-telefono','f-prodotto','f-motivo','f-note','f-anticipo','f-rata-importo'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('f-importo').value = '';
-    document.getElementById('f-stato').value = 'aperto';
-    document.getElementById('f-data').value = dayjs().format('YYYY-MM-DD');
-    document.getElementById('f-anticipo-data').value = dayjs().format('YYYY-MM-DD');
-    document.getElementById('f-anticipo-metodo').value = '';
-    document.getElementById('f-rata-data').value = '';
+    document.getElementById('f-importo').value='';
+    document.getElementById('f-stato').value='aperto';
+    document.getElementById('f-data').value=dayjs().format('YYYY-MM-DD');
+    document.getElementById('f-anticipo-data').value=dayjs().format('YYYY-MM-DD');
+    document.getElementById('f-anticipo-metodo').value='';
+    document.getElementById('f-rata-data').value='';
   }
 }
-
 function closeModalForm() { document.getElementById('modal-form').classList.add('hidden'); }
 
 async function saveRecord() {
   const id = document.getElementById('form-id').value;
   const tipo = document.getElementById('form-tipo-record').value;
-  const isCredito = tipo === 'credito';
+  const isC = tipo === 'credito';
   const nome = document.getElementById('f-nome').value.trim();
   const prodotto = document.getElementById('f-prodotto').value.trim();
   const importo = parseFloat(document.getElementById('f-importo').value);
-  if (!nome || !prodotto || !importo) { alert('Compila i campi obbligatori (*)'); return; }
-
-  const dataField = isCredito ? 'data_primo_credito' : 'data_primo_debito';
-  const nomeField = isCredito ? 'nome_cliente' : 'fornitore';
-  const table = isCredito ? 'crediti' : 'debiti';
-  const rateTable = isCredito ? 'rate_crediti' : 'rate_debiti';
-  const scadTable = isCredito ? 'scadenze_crediti' : 'scadenze_debiti';
-  const fkField = isCredito ? 'credito_id' : 'debito_id';
-
+  if (!nome||!prodotto||!importo) { alert('Compila i campi obbligatori (*)'); return; }
+  const table = isC?'crediti':'debiti';
   const payload = {
-    [nomeField]: nome,
-    telefono: document.getElementById('f-telefono').value.trim() || null,
+    [isC?'nome_cliente':'fornitore']: nome,
+    telefono: document.getElementById('f-telefono').value.trim()||null,
     tipo: document.getElementById('f-tipo').value,
-    [dataField]: document.getElementById('f-data').value,
-    prodotto, motivo: document.getElementById('f-motivo').value.trim() || null,
+    [isC?'data_primo_credito':'data_primo_debito']: document.getElementById('f-data').value,
+    prodotto, motivo: document.getElementById('f-motivo').value.trim()||null,
     importo_totale: importo, stato: document.getElementById('f-stato').value,
-    note: document.getElementById('f-note').value.trim() || null
+    note: document.getElementById('f-note').value.trim()||null
   };
-
   try {
     let recId = id;
     if (id) {
@@ -449,48 +524,50 @@ async function saveRecord() {
       recId = res[0].id;
     }
     const anticipo = parseFloat(document.getElementById('f-anticipo').value);
-    if (!id && anticipo > 0) {
+    const rateTable = isC?'rate_crediti':'rate_debiti';
+    const scadTable = isC?'scadenze_crediti':'scadenze_debiti';
+    const fk = isC?'credito_id':'debito_id';
+    if (!id&&anticipo>0) {
       await api('POST', rateTable, {
-        [fkField]: recId, importo: anticipo,
-        data_pagamento: document.getElementById('f-anticipo-data').value || dayjs().format('YYYY-MM-DD'),
-        metodo_pagamento: document.getElementById('f-anticipo-metodo').value || null,
+        [fk]: recId, importo: anticipo,
+        data_pagamento: document.getElementById('f-anticipo-data').value||dayjs().format('YYYY-MM-DD'),
+        metodo_pagamento: document.getElementById('f-anticipo-metodo').value||null,
         tipo: 'anticipo'
       });
     }
     const rI = parseFloat(document.getElementById('f-rata-importo').value);
     const rD = document.getElementById('f-rata-data').value;
-    if (rI > 0 && rD) {
-      await api('DELETE', `${scadTable}?${fkField}=eq.${recId}&pagata=eq.false`);
-      await api('POST', scadTable, { [fkField]: recId, importo: rI, data_scadenza: rD, pagata: false });
+    if (rI>0&&rD) {
+      await api('DELETE', `${scadTable}?${fk}=eq.${recId}&pagata=eq.false`);
+      await api('POST', scadTable, { [fk]: recId, importo: rI, data_scadenza: rD, pagata: false });
     }
     closeModalForm();
     await loadAll();
-    const rec = isCredito ? crediti.find(x=>x.id===recId) : debiti.find(x=>x.id===recId);
-    if (rec && rec.telefono) openWA(recId, tipo, 'riepilogo');
-  } catch(e) { alert('Errore: ' + e.message); }
+    const rec = isC?crediti.find(x=>x.id===recId):debiti.find(x=>x.id===recId);
+    if (rec&&rec.telefono) openWA(recId, tipo, 'riepilogo');
+  } catch(e) { alert('Errore: '+e.message); }
 }
 
 async function deleteRecord(id, tipo) {
   const pwd = prompt('Inserisci la password per eliminare:');
-  if (pwd === null) return;
-  if (pwd !== PWD_DELETE) { alert('Password errata.'); return; }
-  const isCredito = tipo === 'credito';
-  const table = isCredito ? 'crediti' : 'debiti';
-  const fk = isCredito ? 'credito_id' : 'debito_id';
-  await api('DELETE', `${isCredito?'scadenze_crediti':'scadenze_debiti'}?${fk}=eq.${id}`);
-  await api('DELETE', `${isCredito?'rate_crediti':'rate_debiti'}?${fk}=eq.${id}`);
-  await api('DELETE', `${table}?id=eq.${id}`);
+  if (pwd===null) return;
+  if (pwd!==PWD_DELETE) { alert('Password errata.'); return; }
+  const isC = tipo==='credito';
+  const fk = isC?'credito_id':'debito_id';
+  await api('DELETE', `${isC?'scadenze_crediti':'scadenze_debiti'}?${fk}=eq.${id}`);
+  await api('DELETE', `${isC?'rate_crediti':'rate_debiti'}?${fk}=eq.${id}`);
+  await api('DELETE', `${isC?'crediti':'debiti'}?id=eq.${id}`);
   await loadAll();
 }
 
 // ---- DETTAGLIO ----
 function openDettaglio(id, tipo) {
-  const isCredito = tipo === 'credito';
-  const rec = isCredito ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
-  const rs = (isCredito ? rateC : rateD).filter(r=>r.credito_id===id||r.debito_id===id).sort((a,b)=>new Date(a.data_pagamento)-new Date(b.data_pagamento));
-  const sc = (isCredito ? scadenzeC : scadenzeD).filter(s=>s.credito_id===id||s.debito_id===id);
+  const isC = tipo==='credito';
+  const rec = isC?crediti.find(x=>x.id===id):debiti.find(x=>x.id===id);
+  const rs = (isC?rateC:rateD).filter(r=>r.credito_id===id||r.debito_id===id).sort((a,b)=>new Date(a.data_pagamento)-new Date(b.data_pagamento));
+  const sc = (isC?scadenzeC:scadenzeD).filter(s=>s.credito_id===id||s.debito_id===id);
   const saldo = getSaldo(id, tipo);
-  const nome = rec.nome_cliente || rec.fornitore;
+  const nome = rec.nome_cliente||rec.fornitore;
   document.getElementById('det-title').textContent = `Dettaglio — ${nome}`;
   document.getElementById('det-body').innerHTML = `
     <div class="card-details" style="margin-bottom:16px">
@@ -503,17 +580,12 @@ function openDettaglio(id, tipo) {
     </div>
     <hr class="divider">
     <div style="font-weight:700;margin-bottom:10px">Storico Pagamenti</div>
-    <div class="rata-list">${rs.length ? rs.map(r=>`<div class="rata-item" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="display:flex;justify-content:space-between;width:100%"><div><strong>€${parseFloat(r.importo).toFixed(2)}</strong> <span style="color:#94a3b8">(${r.tipo})</span></div><div>${dayjs(r.data_pagamento).format('DD/MM/YYYY')}${r.metodo_pagamento?` · ${r.metodo_pagamento}`:''}</div></div>${r.note?`<div style="font-size:0.78rem;color:#f59e0b">📝 ${r.note}</div>`:''}</div>`).join('') : '<div style="color:#94a3b8;font-size:0.85rem">Nessun pagamento registrato</div>'}</div>
+    <div class="rata-list">${rs.length?rs.map(r=>`<div class="rata-item" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="display:flex;justify-content:space-between;width:100%"><div><strong>€${parseFloat(r.importo).toFixed(2)}</strong> <span style="color:#94a3b8">(${r.tipo})</span></div><div>${dayjs(r.data_pagamento).format('DD/MM/YYYY')}${r.metodo_pagamento?` · ${r.metodo_pagamento}`:''}</div></div>${r.note?`<div style="font-size:0.78rem;color:#f59e0b">📝 ${r.note}</div>`:''}</div>`).join(''):'<div style="color:#94a3b8;font-size:0.85rem">Nessun pagamento registrato</div>'}</div>
     <hr class="divider">
     <div style="font-weight:700;margin-bottom:10px">Scadenze Future</div>
-    <div class="rata-list">${sc.length ? sc.map(s=>`<div class="rata-item"><div><strong>€${parseFloat(s.importo).toFixed(2)}</strong></div><div>${dayjs(s.data_scadenza).format('DD/MM/YYYY')} <span class="badge ${s.pagata?'badge-chiuso':'badge-aperto'}" style="margin-left:8px">${s.pagata?'Pagata':'In attesa'}</span></div></div>`).join('') : '<div style="color:#94a3b8;font-size:0.85rem">Nessuna scadenza impostata</div>'}</div>
-    <hr class="divider">
-    <div style="font-weight:700;margin-bottom:8px">📝 Note aggiuntive</div>
-    <textarea id="det-note" rows="3" style="width:100%;background:#0f1117;border:1px solid #2d3148;border-radius:7px;padding:9px 12px;color:#e2e8f0;font-size:0.85rem;outline:none;resize:vertical">${rec.note||''}</textarea>
-    <div style="margin-top:8px;text-align:right">
-      <button class="btn btn-ghost btn-sm" onclick="saveNote('${id}','${tipo}')">💾 Salva Note</button>
-    </div>
-    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+    <div class="rata-list">${sc.length?sc.map(s=>`<div class="rata-item"><div><strong>€${parseFloat(s.importo).toFixed(2)}</strong></div><div>${dayjs(s.data_scadenza).format('DD/MM/YYYY')} <span class="badge ${s.pagata?'badge-chiuso':'badge-aperto'}" style="margin-left:8px">${s.pagata?'Pagata':'In attesa'}</span></div></div>`).join(''):'<div style="color:#94a3b8;font-size:0.85rem">Nessuna scadenza impostata</div>'}</div>
+    ${rec.note?`<hr class="divider"><div style="font-size:0.85rem;color:#94a3b8">📝 ${rec.note}</div>`:''}
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" onclick="closeModalDettaglio();openModalRata('${id}','${tipo}')">+ Aggiungi Pagamento</button>
       ${rec.telefono?`<button class="btn btn-wa btn-sm" onclick="closeModalDettaglio();openWA('${id}','${tipo}','promemoria')">📱 Promemoria</button>`:''}
       ${rec.telefono?`<button class="btn btn-wa btn-sm" onclick="closeModalDettaglio();openWA('${id}','${tipo}','riepilogo')">📱 Invia Riepilogo</button>`:''}
@@ -522,31 +594,20 @@ function openDettaglio(id, tipo) {
 }
 function closeModalDettaglio() { document.getElementById('modal-dettaglio').classList.add('hidden'); }
 
-async function saveNote(id, tipo) {
-  const note = document.getElementById('det-note').value.trim();
-  const table = tipo === 'credito' ? 'crediti' : 'debiti';
-  try {
-    await api('PATCH', `${table}?id=eq.${id}`, { note: note || null });
-    await loadAll();
-    // Aggiorna il campo visivo senza chiudere il modale
-    const btn = document.querySelector('#det-body .btn-ghost.btn-sm');
-    if (btn) { btn.textContent = '✅ Salvato!'; setTimeout(()=>btn.textContent='💾 Salva Note', 1500); }
-  } catch(e) { alert('Errore salvataggio note: ' + e.message); }
-}
-
 // ---- MODAL RATA ----
 function openModalRata(id, tipo) {
   document.getElementById('rata-record-id').value = id;
   document.getElementById('rata-record-tipo').value = tipo;
-  document.getElementById('rata-title').textContent = tipo === 'credito' ? 'Aggiungi Pagamento Ricevuto' : 'Aggiungi Pagamento Effettuato';
-  document.getElementById('lbl-rata-importo').textContent = tipo === 'credito' ? 'Importo Ricevuto (€) *' : 'Importo Pagato (€) *';
-  document.getElementById('rata-importo').value = '';
-  document.getElementById('rata-data').value = dayjs().format('YYYY-MM-DD');
-  document.getElementById('rata-metodo').value = '';
-  document.getElementById('rata-tipo').value = 'rata';
+  document.getElementById('rata-title').textContent = tipo==='credito'?'Aggiungi Pagamento Ricevuto':'Aggiungi Pagamento Effettuato';
+  document.getElementById('lbl-rata-importo').textContent = tipo==='credito'?'Importo Ricevuto (€) *':'Importo Pagato (€) *';
+  document.getElementById('rata-importo').value='';
+  document.getElementById('rata-data').value=dayjs().format('YYYY-MM-DD');
+  document.getElementById('rata-metodo').value='';
+  document.getElementById('rata-tipo').value='rata';
+  document.getElementById('rata-note').value='';
   const p = getProssima(id, tipo);
-  document.getElementById('rata-prossima-importo').value = p ? p.importo : '';
-  document.getElementById('rata-prossima-data').value = '';
+  document.getElementById('rata-prossima-importo').value=p?p.importo:'';
+  document.getElementById('rata-prossima-data').value='';
   document.getElementById('modal-rata').classList.remove('hidden');
 }
 function closeModalRata() { document.getElementById('modal-rata').classList.add('hidden'); }
@@ -554,53 +615,51 @@ function closeModalRata() { document.getElementById('modal-rata').classList.add(
 async function saveRata() {
   const id = document.getElementById('rata-record-id').value;
   const tipo = document.getElementById('rata-record-tipo').value;
-  const isCredito = tipo === 'credito';
+  const isC = tipo==='credito';
   const importo = parseFloat(document.getElementById('rata-importo').value);
   const data = document.getElementById('rata-data').value;
-  if (!importo || !data) { alert('Inserisci importo e data'); return; }
-  const fk = isCredito ? 'credito_id' : 'debito_id';
-  const rateTable = isCredito ? 'rate_crediti' : 'rate_debiti';
-  const scadTable = isCredito ? 'scadenze_crediti' : 'scadenze_debiti';
+  if (!importo||!data) { alert('Inserisci importo e data'); return; }
+  const fk = isC?'credito_id':'debito_id';
+  const rateTable = isC?'rate_crediti':'rate_debiti';
+  const scadTable = isC?'scadenze_crediti':'scadenze_debiti';
   try {
-    const rataPayload = {
+    await api('POST', rateTable, {
       [fk]: id, importo, data_pagamento: data,
-      metodo_pagamento: document.getElementById('rata-metodo').value || null,
+      metodo_pagamento: document.getElementById('rata-metodo').value||null,
       tipo: document.getElementById('rata-tipo').value,
-      note: document.getElementById('rata-note').value.trim() || null
-    };
-    await api('POST', rateTable, rataPayload);
+      note: document.getElementById('rata-note').value.trim()||null
+    });
     const pi = parseFloat(document.getElementById('rata-prossima-importo').value);
     const pd = document.getElementById('rata-prossima-data').value;
-    if (pi > 0 && pd) {
+    if (pi>0&&pd) {
       await api('DELETE', `${scadTable}?${fk}=eq.${id}&pagata=eq.false`);
       await api('POST', scadTable, { [fk]: id, importo: pi, data_scadenza: pd, pagata: false });
     }
     await loadAll();
-    if (getSaldo(id, tipo) <= 0) {
-      const table = isCredito ? 'crediti' : 'debiti';
-      await api('PATCH', `${table}?id=eq.${id}`, { stato: 'chiuso' });
+    if (getSaldo(id,tipo)<=0) {
+      await api('PATCH', `${isC?'crediti':'debiti'}?id=eq.${id}`, { stato: 'chiuso' });
       await loadAll();
     }
     closeModalRata();
-    const rec = isCredito ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
-    if (rec && rec.telefono) openWA(id, tipo, 'riepilogo');
-  } catch(e) { alert('Errore: ' + e.message); }
+    const rec = isC?crediti.find(x=>x.id===id):debiti.find(x=>x.id===id);
+    if (rec&&rec.telefono) openWA(id, tipo, 'riepilogo');
+  } catch(e) { alert('Errore: '+e.message); }
 }
 
 // ---- WHATSAPP ----
 function openWA(id, tipo, modalita) {
-  const isCredito = tipo === 'credito';
-  const rec = isCredito ? crediti.find(x=>x.id===id) : debiti.find(x=>x.id===id);
-  const nome = rec.nome_cliente || rec.fornitore;
-  const saldo = getSaldo(id, tipo);
-  const pagato = getPagato(id, tipo);
-  const prossima = getProssima(id, tipo);
+  const isC = tipo==='credito';
+  const rec = isC?crediti.find(x=>x.id===id):debiti.find(x=>x.id===id);
+  const nome = rec.nome_cliente||rec.fornitore;
+  const saldo = getSaldo(id,tipo);
+  const pagato = getPagato(id,tipo);
+  const prossima = getProssima(id,tipo);
   const oggi = dayjs().format('DD/MM/YYYY');
   waPhone = rec.telefono;
-  if (modalita === 'promemoria') {
+  if (modalita==='promemoria') {
     waMsg = `Buongiorno ${nome}, volevo ricordarti che si sta avvicinando la scadenza del pagamento da effettuare per ${rec.prodotto}.\nLa differenza da dare è: €${saldo.toFixed(2)}\nAggiornata al: ${oggi}`;
   } else {
-    waMsg = `Buongiorno ${nome}, ecco il riepilogo aggiornato al ${oggi}:\n\nProdotto: ${rec.prodotto}\nImporto totale: €${parseFloat(rec.importo_totale).toFixed(2)}\nPagato finora: €${pagato.toFixed(2)}\nSaldo residuo: €${saldo.toFixed(2)}${prossima?`\nProssima scadenza: ${dayjs(prossima.data_scadenza).format('DD/MM/YYYY')} (€${parseFloat(prossima.importo).toFixed(2)})`:''}`;
+    waMsg = `Buongiorno ${nome}, ecco il riepilogo aggiornato al ${oggi}:\n\nProdotto: ${rec.prodotto}\nImporto totale: €${parseFloat(rec.importo_totale).toFixed(2)}\nPagato finora: €${pagato.toFixed(2)}\nSaldo residuo: €${saldo.toFixed(2)}${prossima?`\nProssima scadenza: ${dayjs(prossima.data_scadenza).format('DD/MM/YYYY')} (€${parseFloat(prossima.importo).toFixed(2)})`:''}${rec.note?`\n\nNote: ${rec.note}`:''}`;
   }
   document.getElementById('wa-text').textContent = waMsg;
   document.getElementById('modal-wa').classList.remove('hidden');
@@ -608,7 +667,7 @@ function openWA(id, tipo, modalita) {
 function closeModalWA() { document.getElementById('modal-wa').classList.add('hidden'); }
 function sendWA() {
   const num = waPhone.replace(/\D/g,'');
-  window.open(`https://wa.me/${num.startsWith('39')?num:'39'+num}?text=${encodeURIComponent(waMsg)}`, '_blank');
+  window.open(`https://wa.me/${num.startsWith('39')?num:'39'+num}?text=${encodeURIComponent(waMsg)}`,'_blank');
   closeModalWA();
 }
 </script>
